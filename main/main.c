@@ -1,3 +1,6 @@
+// Logging
+//#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+
 // Includes
 #include <stdio.h>
 #include "esp_log.h"
@@ -8,10 +11,11 @@
 
 // Project Includes
 #include "h/main.h"
+#include "h/admin.h"
 #include "h/bluetooth.h"
 
 // Template Includes
-#include "esp_spi_flash.h"
+//#include "esp_spi_flash.h"
 
 // Global Variables
 TaskHandle_t task_bluetooth = NULL;
@@ -23,14 +27,15 @@ static const char* TAG = "MAIN";
 void app_main(void) {
     printAppHeader();
 
+#if defined(CONFIG_BT_ENABLED) && defined(CONFIG_BLUEDROID_ENABLED)
+    // Bluetooth Initialization
     bluetooth_init();
-    
     xTaskCreate(bluetooth_task, "bluetooth", 5000, &params_bluetooth, 10, &task_bluetooth);
-    if (task_bluetooth == NULL) printf("TASK NULL\n");
+#else
+    ESP_LOGE(TAG, "Bluetooth feature disabled by sdkconfig");
+#endif
 
-    char task_buffer[500];
-    vTaskList(task_buffer);
-    printf("%s", task_buffer);
+    //ADMIN_printTasks();
 }
 
 static void printAppHeader() {
