@@ -10,21 +10,30 @@
 #include "h\bluetooth.h"
 #include "h\main.h"
 
-static const char* TAG = "BLUETOOTH";
+// Macros
+#define BLUETOOTH_TASK_DELAY (1000 / portTICK_PERIOD_MS)
 
-extern TaskHandle_t task_bluetooth;
+// File Scope Variables
+static const char* TAG = "BLUETOOTH";
+static TaskHandle_t task_bluetooth = NULL;
+static uint8_t params_bluetooth;
 
 void bluetooth_init() {
     ESP_LOGI(TAG, "bluetooth_init()");
+    
+    xTaskCreate(bluetooth_task, "bluetooth", 5000, &params_bluetooth, 10, &task_bluetooth);
 }
 
 void bluetooth_task(void* task_params) {
-    static const TickType_t taskDelay = 1000 / portTICK_PERIOD_MS;
+
+    int task_run_count = 0;
 
     while (1) {
-        ESP_LOGD(TAG, "High Water Mark: %i", uxTaskGetStackHighWaterMark(task_bluetooth));
+        task_run_count++;
 
-        vTaskDelay(taskDelay);
+        if (task_run_count % 10 == 0) ESP_LOGD(TAG, "High Water Mark: %i", uxTaskGetStackHighWaterMark(task_bluetooth));
+
+        vTaskDelay(BLUETOOTH_TASK_DELAY);
     }
 
     vTaskDelete(task_bluetooth);

@@ -1,3 +1,5 @@
 #pragma once
 
-void ADMIN_printTasks()
+void ADMIN_printAppHeader();
+void ADMIN_loggingTest();
+void ADMIN_printTasks();
