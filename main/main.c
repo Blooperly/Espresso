@@ -4,9 +4,6 @@
 // Includes
 #include <stdio.h>
 #include "esp_log.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "sdkconfig.h"
 
 // Project Includes
 #include "h/main.h"
@@ -18,16 +15,24 @@
 // File Scope Variables
 static const char* TAG = "MAIN";
 
+// App entry point
 void app_main(void) {
+
+    #ifdef DEBUG
     esp_log_level_set("*", ESP_LOG_VERBOSE);
+    #else
+    esp_log_level_set("*", ESP_LOG_INFO);
+    #endif
+
+    ADMIN_watchdogInit();
     ADMIN_printAppHeader();
 
-#if defined(CONFIG_BT_ENABLED) && defined(CONFIG_BLUEDROID_ENABLED)
     // Bluetooth Initialization
+    #if defined(CONFIG_BT_ENABLED) && defined(CONFIG_BLUEDROID_ENABLED)
     bluetooth_init();
-#else
+    #else
     ESP_LOGE(TAG, "Bluetooth feature disabled by sdkconfig");
-#endif
+    #endif
 
     ADMIN_printTasks();
 }

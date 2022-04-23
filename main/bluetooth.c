@@ -8,7 +8,6 @@
 
 // Project Includes
 #include "h\bluetooth.h"
-#include "h\main.h"
 
 // Macros
 #define BLUETOOTH_TASK_DELAY (1000 / portTICK_PERIOD_MS)
