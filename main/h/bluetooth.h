@@ -1,4 +1,6 @@
 #pragma once
 
-void bluetooth_init();
-void bluetooth_task();
+void BLUETOOTH_init();
+void BLUETOOTH_task();
+void BLUETOOTH_gatts_event();
+void BLUETOOTH_gap_event();
