@@ -29,7 +29,7 @@ void app_main(void) {
 
     // Bluetooth Initialization
     #if defined(CONFIG_BT_ENABLED) && defined(CONFIG_BLUEDROID_ENABLED)
-    bluetooth_init();
+    BLUETOOTH_init();
     #else
     ESP_LOGE(TAG, "Bluetooth feature disabled by sdkconfig");
     #endif

@@ -5,7 +5,8 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "bt.h"
+#include "nvs_flash.h"
+#include "esp_bt.h"
 #include "esp_bt_main.h"
 #include "esp_gap_ble_api.h"
 #include "esp_gatts_api.h"
@@ -25,6 +26,14 @@ void BLUETOOTH_init() {
     ESP_LOGI(TAG, "BLUETOOTH_init()");
 
     esp_err_t ret;
+
+    // Initialize NVS Flash (needed for BT library)
+    ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
 
     // Initialize Bluetooth controller stack configuration structure
     esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
@@ -70,7 +79,20 @@ void BLUETOOTH_init() {
         ESP_LOGE(TAG, "GAP callback register failed");
         return;
     }
+
+    /* IDK what this does yet
+    ret = esp_ble_gatts_app_register(gatts_app);
+    if (ret){
+        ESP_LOGE(TAG, "gatts app register error, error code = %x", ret);
+        return;
+    }
     
+    esp_err_t local_mtu_ret = esp_ble_gatt_set_local_mtu(512);
+    if (local_mtu_ret){
+        ESP_LOGE(TAG, "set local  MTU failed, error code = %x", local_mtu_ret);
+    }*/
+    
+    // Launch bluetooth task
     xTaskCreate(BLUETOOTH_task, "bluetooth", 5000, &params_bluetooth, 10, &task_bluetooth);
 }
 
@@ -90,9 +112,9 @@ void BLUETOOTH_task(void* task_params) {
 }
 
 void BLUETOOTH_gatts_event() {
-
+    ESP_LOGI(TAG, "BLUETOOTH_gatts_event()");
 }
 
 void BLUETOOTH_gap_event() {
-
+    ESP_LOGI(TAG, "BLUETOOTH_gap_event()");
 }
