@@ -1,5 +1,8 @@
 #pragma once
 
+#include "esp_gap_ble_api.h"
+#include "esp_gatts_api.h"
+
 typedef struct {
     uint8_t                 *prepare_buf;
     int                     prepare_len;

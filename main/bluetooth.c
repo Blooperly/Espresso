@@ -12,8 +12,6 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "esp_bt.h"
-#include "esp_gap_ble_api.h"
-#include "esp_gatts_api.h"
 #include "esp_bt_defs.h"
 #include "esp_bt_main.h"
 #include "esp_gatt_common_api.h"
@@ -484,11 +482,12 @@ static void BLUETOOTH_profile_event(esp_gatts_cb_event_t event, esp_gatt_if_t ga
             break;
 
         case ESP_GATTS_ADD_CHAR_EVT:
+            ESP_LOGI(TAG, "ADD_CHAR_EVT, status %d,  attr_handle %d, service_handle %d\n",
+                    param->add_char.status, param->add_char.attr_handle, param->add_char.service_handle);
+
             uint16_t length = 0;
             const uint8_t *prf_char;
 
-            ESP_LOGI(TAG, "ADD_CHAR_EVT, status %d,  attr_handle %d, service_handle %d\n",
-                    param->add_char.status, param->add_char.attr_handle, param->add_char.service_handle);
             gl_profile_tab[GATTS_APP].char_handle = param->add_char.attr_handle;
             gl_profile_tab[GATTS_APP].descr_uuid.len = ESP_UUID_LEN_16;
             gl_profile_tab[GATTS_APP].descr_uuid.uuid.uuid16 = ESP_GATT_UUID_CHAR_CLIENT_CONFIG;
@@ -526,6 +525,7 @@ static void BLUETOOTH_profile_event(esp_gatts_cb_event_t event, esp_gatt_if_t ga
             break;
 
         case ESP_GATTS_CONNECT_EVT:
+            ESP_LOGI(TAG, "ESP_GATTS_CONNECT_EVT");
             esp_ble_conn_update_params_t conn_params = {0};
             memcpy(conn_params.bda, param->connect.remote_bda, sizeof(esp_bd_addr_t));
             // For the IOS system, please reference the apple official documents about the ble connection parameters restrictions.
@@ -583,7 +583,7 @@ void BLUETOOTH_gatts_event(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, e
     // so here call each profile's callback
     do {
         int idx;
-        for (idx = 0; idx < PROFILE_NUM; idx++) {
+        for (idx = 0; idx < GATTS_APP_LAST; idx++) {
             if (gatts_if == ESP_GATT_IF_NONE || // ESP_GATT_IF_NONE, not specify a certain gatt_if, need to call every profile cb function
                     gatts_if == gl_profile_tab[idx].gatts_if) {
                 if (gl_profile_tab[idx].gatts_cb) {
