@@ -2,6 +2,7 @@
 //#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 
 // Includes
+#include <stdio.h>
 #include "esp_log.h"
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
@@ -28,7 +29,7 @@ void ADMIN_watchdogInit() {
         // The task watchdog timer (TWDT) is different than the interrupt watchdog timer. The
         // TWDT ensures that tasks are run frequently enough, and not blocked by CPU hungry
         // tasks with a higher priority. By default, the TWDT only makes sure that each core's
-        // idle task runs within the wathdog's timout.
+        // idle task runs within the watchdog's timout.
 
     ESP_ERROR_CHECK(
         esp_task_wdt_init(WATCHDOG_TIMEOUT, true)
