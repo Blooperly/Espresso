@@ -1,0 +1,8 @@
+Run mosquitto broker:
+	C:\Program Files\mosquitto> .\mosquitto.exe -c .\mosquitto_basic.conf -v
+
+Subscribe to mosquitto topic:
+	C:\Program Files\mosquitto> .\mosquitto_sub.exe -h 192.168.1.217 -p 1883 -t "#" -F "%t: %X"
+
+Publish to mosquitto topic:
+	C:\Program Files\mosquitto> .\mosquitto_pub.exe -h 192.168.1.217 -p 1883 -t "Espresso/" -f .\payload

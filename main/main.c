@@ -8,7 +8,9 @@
 // Project Includes
 #include "h/main.h"
 #include "h/admin.h"
-#include "h/bluetooth.h"
+#include "h/wifi.h"
+#include "h/mqtt.h"
+//#include "h/bluetooth.h"
 
 // Global Variables
 
@@ -27,9 +29,15 @@ void app_main(void) {
     ADMIN_watchdogInit();
     ADMIN_printAppHeader();
 
+    // Wifi Initialization
+    WIFI_init();
+
+    // MQTT Initialization
+    MQTT_init();
+
     // Bluetooth Initialization
     #if defined(CONFIG_BT_ENABLED) && defined(CONFIG_BLUEDROID_ENABLED)
-    BLUETOOTH_init();
+    //BLUETOOTH_init();
     #else
     ESP_LOGE(TAG, "Bluetooth feature disabled by sdkconfig");
     #endif
