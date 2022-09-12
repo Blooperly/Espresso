@@ -1,9 +1,11 @@
-// Logging
+// Main
 //#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 
 // Includes
 #include <stdio.h>
 #include "esp_log.h"
+#include "esp_system.h"
+#include "esp_event.h"
 
 // Project Includes
 #include "h/main.h"
@@ -20,27 +22,20 @@ static const char* TAG = "MAIN";
 // App entry point
 void app_main(void) {
 
+    // Global logging
     #ifdef DEBUG
     esp_log_level_set("*", ESP_LOG_VERBOSE);
     #else
     esp_log_level_set("*", ESP_LOG_INFO);
     #endif
 
+    // App Initialization
     ADMIN_watchdogInit();
     ADMIN_printAppHeader();
-
-    // Wifi Initialization
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
     WIFI_init();
-
-    // MQTT Initialization
     MQTT_init();
-
-    // Bluetooth Initialization
-    #if defined(CONFIG_BT_ENABLED) && defined(CONFIG_BLUEDROID_ENABLED)
     //BLUETOOTH_init();
-    #else
-    ESP_LOGE(TAG, "Bluetooth feature disabled by sdkconfig");
-    #endif
 
     ADMIN_printTasks();
 }
