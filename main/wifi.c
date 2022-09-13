@@ -21,7 +21,7 @@
 
 // Defines
 #define DEFAULT_WIFI_SSID      	"The Peoples Coffeehouse"
-#define DEFAULT_WIFI_PASS      	"Haymarket1886"
+#define DEFAULT_WIFI_PASS      	""
 #define WIFI_MAXIMUM_RETRY  	5
 
 // Local Variables
