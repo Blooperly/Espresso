@@ -1,8 +1,11 @@
 Run mosquitto broker:
-	C:\Program Files\mosquitto> .\mosquitto.exe -c .\mosquitto_basic.conf -v
+	cd C:\Program Files\mosquitto
+	.\mosquitto.exe -c .\mosquitto_basic.conf -v
 
 Subscribe to mosquitto topic:
-	C:\Program Files\mosquitto> .\mosquitto_sub.exe -h 192.168.1.217 -p 1883 -t "#" -F "%t: %X"
+	cd C:\Program Files\mosquitto
+	.\mosquitto_sub.exe -h 192.168.1.217 -p 1883 -t "#" -F "%t: %X"
 
 Publish to mosquitto topic:
-	C:\Program Files\mosquitto> .\mosquitto_pub.exe -h 192.168.1.217 -p 1883 -t "Espresso/" -f .\payload
+	cd C:\Program Files\mosquitto
+	.\mosquitto_pub.exe -h 192.168.1.217 -p 1883 -t "Espresso/7C:DF:A1:E2:83:08" -f .\payload
