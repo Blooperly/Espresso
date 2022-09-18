@@ -14,10 +14,11 @@
 // Project Includes
 #include "h/main.h"
 #include "h/admin.h"
+#include "h/i2c.h"
 #include "h/wifi.h"
 #include "h/mqtt.h"
-#include "h/led_matrix.h"
 //#include "h/bluetooth.h"
+#include "h/ht16k33.h"
 
 // Global Variables
 
@@ -55,9 +56,11 @@ void app_main(void) {
 	ESP_ERROR_CHECK(esp_netif_init());
 
 	// Application Initialization
+	I2C_init();
 	WIFI_init();
 	MQTT_init();
 	//BLUETOOTH_init();
+	HT16K33_init();
 
 	ADMIN_printTasks();
 }

@@ -68,7 +68,6 @@ static void mqttEventHandler(void *handler_args, esp_event_base_t base, int32_t 
             char topic[sizeof(DEFAULT_MQTT_TOPIC) + MAC_STRING_LEN];
             sprintf(topic, "%s/%02X:%02X:%02X:%02X:%02X:%02X", DEFAULT_MQTT_TOPIC, pawWifiMac[0], pawWifiMac[1], pawWifiMac[2], pawWifiMac[3], pawWifiMac[4], pawWifiMac[5]);
             msg_id = esp_mqtt_client_subscribe(client, topic, 0);
-
             ESP_LOGI(TAG, "SUBSCRIBED: %s", topic);
             break;
 
