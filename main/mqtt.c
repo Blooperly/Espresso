@@ -27,6 +27,7 @@
 #include "h/wifi.h"
 #include "h/command.h"
 #include "h/settings.h"
+#include "h/task_priority.h"
 
 // Defines
 #define DEFAULT_MQTT_TOPIC  "Espresso"
@@ -34,6 +35,16 @@
 
 // Local Variables
 static const char *TAG = "MQTT";
+
+typedef struct {
+	MQTT_STATE 	                eState;
+	bool		                bRecentError;
+    esp_mqtt_client_handle_t    client;
+    char                        topic[sizeof(DEFAULT_MQTT_TOPIC) + MAC_STRING_LEN];
+} MQTT_CONTEXT;
+
+static MQTT_CONTEXT sMqttContext;
+static MQTT_CONTEXT* pMqttContext;
 
 // todo: Configurable MQTT broker address
 static esp_mqtt_client_config_t mqtt_cfg = {
@@ -43,15 +54,41 @@ static esp_mqtt_client_config_t mqtt_cfg = {
 // Local Function Definitions
 static void mqttEventHandler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data);
 static void log_error_if_nonzero(const char *message, int error_code);
+static void setState(MQTT_STATE eState);
 
 // Module Functions
 void MQTT_init(void) {
+	// Initialize Mqtt Context Pointer
+	pMqttContext = &sMqttContext;
 }
 
 void MQTT_appStart(void) {
-    esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
-    esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqttEventHandler, NULL);
-    esp_mqtt_client_start(client);
+    pMqttContext->client = esp_mqtt_client_init(&mqtt_cfg);
+    esp_mqtt_client_register_event(pMqttContext->client, ESP_EVENT_ANY_ID, mqttEventHandler, NULL);
+    esp_mqtt_client_start(pMqttContext->client);
+}
+
+void MQTT_send(uint8_t* buffer, int len) {
+    if (MQTT_getState() == MQTT_STATE_CONNECTED) {
+        esp_mqtt_client_publish(pMqttContext->client, pMqttContext->topic, (char*)buffer, len, 0, 0);
+    }
+}
+
+MQTT_STATE MQTT_getState() {
+	return pMqttContext->eState;
+}
+
+bool MQTT_fetchRecentError() {
+	if (pMqttContext->bRecentError) {
+		pMqttContext->bRecentError = false;
+		return true;
+	}
+
+	if (MQTT_getState() != MQTT_STATE_CONNECTED) {
+		return true;
+	}
+
+	return false;
 }
 
 // Local Functions
@@ -64,15 +101,16 @@ static void mqttEventHandler(void *handler_args, esp_event_base_t base, int32_t 
 			ESP_LOGI(TAG, "mqttEventHandler: MQTT_EVENT_CONNECTED");
 
             // Subscribe to Espresso/MAC
+            setState(MQTT_STATE_CONNECTED);
             uint8_t* pawWifiMac = WIFI_getNetworkMac();
-            char topic[sizeof(DEFAULT_MQTT_TOPIC) + MAC_STRING_LEN];
-            sprintf(topic, "%s/%02X:%02X:%02X:%02X:%02X:%02X", DEFAULT_MQTT_TOPIC, pawWifiMac[0], pawWifiMac[1], pawWifiMac[2], pawWifiMac[3], pawWifiMac[4], pawWifiMac[5]);
-            msg_id = esp_mqtt_client_subscribe(client, topic, 0);
-            ESP_LOGI(TAG, "SUBSCRIBED: %s", topic);
+            sprintf(pMqttContext->topic, "%s/%02X:%02X:%02X:%02X:%02X:%02X", DEFAULT_MQTT_TOPIC, pawWifiMac[0], pawWifiMac[1], pawWifiMac[2], pawWifiMac[3], pawWifiMac[4], pawWifiMac[5]);
+            msg_id = esp_mqtt_client_subscribe(client, pMqttContext->topic, 0);
+            ESP_LOGI(TAG, "SUBSCRIBED: %s", pMqttContext->topic);
             break;
 
         case MQTT_EVENT_DISCONNECTED:
 			ESP_LOGI(TAG, "mqttEventHandler: MQTT_EVENT_DISCONNECTED");
+            setState(MQTT_STATE_DISCONNECTED);
             break;
 
         case MQTT_EVENT_SUBSCRIBED:
@@ -117,6 +155,10 @@ static void mqttEventHandler(void *handler_args, esp_event_base_t base, int32_t 
         default:
             ESP_LOGW(TAG, "mqttEventHandler: UNKNOWN %d", event->event_id);
     }
+}
+
+static void setState(MQTT_STATE eState) {
+	pMqttContext->eState = eState;
 }
 
 static void log_error_if_nonzero(const char *message, int error_code) {

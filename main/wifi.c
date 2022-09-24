@@ -30,6 +30,7 @@ typedef struct {
 	WIFI_STATE 	eState;
 	uint8_t		uRetryCount;
 	uint8_t 	awWifiMac[NETWORK_MAC_SIZE];
+	bool		bRecentError;
 } WIFI_CONTEXT;
 
 static WIFI_CONTEXT sWifiContext;
@@ -94,6 +95,19 @@ WIFI_STATE WIFI_getState() {
 	return pWifiContext->eState;
 }
 
+bool WIFI_fetchRecentError() {
+	if (pWifiContext->bRecentError) {
+		pWifiContext->bRecentError = false;
+		return true;
+	}
+
+	if (WIFI_getState() != WIFI_STATE_CONNECTED) {
+		return true;
+	}
+
+	return false;
+}
+
 // Local Functions
 static void wifiEventHandler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
 	// WiFi Events
@@ -127,12 +141,12 @@ static void wifiEventHandler(void* arg, esp_event_base_t event_base, int32_t eve
 
 			case WIFI_EVENT_STA_BEACON_TIMEOUT:
 				ESP_LOGI(TAG, "wifiEventHandler: WIFI_EVENT_STA_BEACON_TIMEOUT");
-				setState(WIFI_STATE_DISCONNECTED);
 				disconnectHandler();
 				break;
 				
 			default:
 				ESP_LOGI(TAG, "wifiEventHandler: Unknown wifi event!");
+				pWifiContext->bRecentError = true;
 		}
 	}
 	
@@ -166,6 +180,7 @@ static void wifiEventHandler(void* arg, esp_event_base_t event_base, int32_t eve
 				
 			default:
 				ESP_LOGI(TAG, "wifiEventHandler: Unknown ip event!");
+				pWifiContext->bRecentError = true;
 		}
 	}
 }

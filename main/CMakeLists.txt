@@ -10,5 +10,6 @@ idf_component_register(SRCS
     "command.c"
     
     "ht16k33.c"
+    "tmp102.c"
 
     INCLUDE_DIRS ".")

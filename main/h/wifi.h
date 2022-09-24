@@ -10,3 +10,4 @@ typedef enum {
 void WIFI_init(void);
 uint8_t* WIFI_getNetworkMac();
 WIFI_STATE WIFI_getState();
+bool WIFI_fetchRecentError();
