@@ -19,6 +19,7 @@
 #include "h/mqtt.h"
 //#include "h/bluetooth.h"
 #include "h/ht16k33.h"
+#include "h/tmp102.h"
 #include "h/task_priority.h"
 
 // Defines
@@ -76,6 +77,7 @@ void app_main(void) {
 	MQTT_init();
 	//BLUETOOTH_init();
 	HT16K33_init();
+	TMP102_init();
 
 	// Launch app task
     xTaskCreate(app_task, "app", APP_TASK_STACK_SIZE, &params_app, TASK_PRIORITY_APP, &task_app);
@@ -179,11 +181,9 @@ static void app_task(void* task_params) {
 
 		if (currentTick - last_temp_send_tick >= TEMP_SEND_DELAY) {
 			last_temp_send_tick = currentTick;
-			
-			uint8_t temp[5] = {0x00};
-			temp[0] = 0x43 + wave_state;
-			ESP_LOGI(TAG, "Sending temp = %02X", temp[0]);
-			MQTT_send(temp, 1);
+			uint8_t temp = TMP102_readTemp();
+			ESP_LOGI(TAG, "Sending temp = %02X", temp);
+			MQTT_send(&temp, 1);
 		}
 
 		vTaskDelay(HT16K33_TASK_DELAY);

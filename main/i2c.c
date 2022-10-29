@@ -52,3 +52,15 @@ esp_err_t I2C_write(I2C_DEVICE device, uint8_t* data, int len) {
 	
 	return i2c_master_write_to_device(I2C_NUM_0, device, data, len, I2C_MASTER_TIMEOUT_MS / portTICK_RATE_MS);
 }
+
+esp_err_t I2C_read(I2C_DEVICE device, uint8_t* data, int len) {
+	esp_err_t err = i2c_master_read_from_device(I2C_NUM_0, device, data, len, I2C_MASTER_TIMEOUT_MS / portTICK_RATE_MS);
+
+	//printf("\n\nI2C read from 0x%02X:", device);
+	//for (int i = 0; i < len; i++) {
+	//	printf(" %02X", data[i]);
+	//}
+	//printf("\n\n");
+	
+	return err;
+}
