@@ -29,9 +29,7 @@
 #define TEMP_SEND_DELAY 	(10000 / portTICK_RATE_MS)
 
 #define SYSVIEW_WRITE_COLUMN	7
-#define SYSVIEW_WIFI_ROW		0
-#define SYSVIEW_MQTT_ROW		1
-#define SYSVIEW_BLUETOOTH_ROW 	2
+#define SYSVIEW_STATUS_ROW		7
 #define SYSVIEW_WAVE_TOP		6
 #define SYSVIEW_WAVE_BOTTOM		7
 
@@ -89,94 +87,24 @@ void app_main(void) {
 static void app_task(void* task_params) {
 	TickType_t last_system_status_tick = 0;
 	TickType_t last_temp_send_tick = 0;
-	int wave_state = 0;
+	
 	while (1) {
 		TickType_t currentTick = xTaskGetTickCount();
 		if (currentTick - last_system_status_tick >= SYSTEM_STATUS_DELAY) {
 			last_system_status_tick = currentTick;
 			
 			// Prepare Sysview
-			HT16K33_leftShift();
+			HT16K33_leftShift(SYSVIEW_STATUS_ROW);
 
 			// Write new Sysview pixels
-			if (WIFI_fetchRecentError()) {
-				HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WIFI_ROW, HT16K33_COLOR_RED);
+			if (WIFI_fetchRecentError() || MQTT_fetchRecentError()) {
+				HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_STATUS_ROW, HT16K33_COLOR_RED);
 			} else {
-				HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WIFI_ROW, HT16K33_COLOR_GREEN);
+				HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_STATUS_ROW, HT16K33_COLOR_GREEN);
 			}
 
-			if (MQTT_fetchRecentError()) {
-				HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_MQTT_ROW, HT16K33_COLOR_RED);
-			} else {
-				HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_MQTT_ROW, HT16K33_COLOR_GREEN);
-			}
-
-			//HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_BLUETOOTH_ROW, HT16K33_COLOR_RED);
-
-			// Progress wave
-			switch (wave_state) {
-				case 0:
-					HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WAVE_TOP, HT16K33_COLOR_GREEN);
-					break;
-				case 1:
-					HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WAVE_BOTTOM, HT16K33_COLOR_GREEN);
-					break;
-				case 2:
-					HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WAVE_TOP, HT16K33_COLOR_GREEN);
-					break;
-				case 3:
-					HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WAVE_BOTTOM, HT16K33_COLOR_ORANGE);
-					break;
-				case 4:
-					HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WAVE_TOP, HT16K33_COLOR_ORANGE);
-					break;
-				case 5:
-					HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WAVE_BOTTOM, HT16K33_COLOR_ORANGE);
-					break;
-				case 6:
-					HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WAVE_TOP, HT16K33_COLOR_RED);
-					break;
-				case 7:
-					HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WAVE_BOTTOM, HT16K33_COLOR_RED);
-					break;
-				case 8:
-					HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WAVE_TOP, HT16K33_COLOR_RED);
-					break;
-				case 9:
-					HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WAVE_BOTTOM, HT16K33_COLOR_GREEN);
-					break;
-				case 10:
-					HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WAVE_TOP, HT16K33_COLOR_GREEN);
-					break;
-				case 11:
-					HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WAVE_BOTTOM, HT16K33_COLOR_GREEN);
-					break;
-				case 12:
-					HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WAVE_TOP, HT16K33_COLOR_ORANGE);
-					break;
-				case 13:
-					HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WAVE_BOTTOM, HT16K33_COLOR_ORANGE);
-					break;
-				case 14:
-					HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WAVE_TOP, HT16K33_COLOR_ORANGE);
-					break;
-				case 15:
-					HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WAVE_BOTTOM, HT16K33_COLOR_RED);
-					break;
-				case 16:
-					HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WAVE_TOP, HT16K33_COLOR_RED);
-					break;
-				case 17:
-					HT16K33_setLed(SYSVIEW_WRITE_COLUMN, SYSVIEW_WAVE_BOTTOM, HT16K33_COLOR_RED);
-					break;
-				default:
-					break;
-			}
-
-			wave_state++;
-			if (wave_state > 17) {
-				wave_state = 0;
-			}
+			// Display Temperature
+			HT16K33_drawTemp(TMP102_readTemp());
 		}
 
 		if (currentTick - last_temp_send_tick >= TEMP_SEND_DELAY) {
